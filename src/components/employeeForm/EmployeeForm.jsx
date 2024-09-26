@@ -71,19 +71,19 @@ const EmployeeForm = () => {
 
   return (
     <form className="form">
-      <label htmlFor="first-name">First Name</label>
+      <label htmlFor="firstName">First Name</label>
       <input type="text" id="firstName" onChange={handleInputChange} />
 
-      <label htmlFor="last-name">Last Name</label>
+      <label htmlFor="lastName">Last Name</label>
       <input type="text" id="lastName" onChange={handleInputChange} />
 
-      <label htmlFor="date-of-birth">Date of Birth</label>
+      <label htmlFor="dateOfBirth">Date of Birth</label>
       <DatePicker
         selectedDate={employeeData.dateOfBirth}
         onChange={(date) => handleDateChange('dateOfBirth', date)}
       />
 
-      <label htmlFor="start-date">Start Date</label>
+      <label htmlFor="startDate">Start Date</label>
       <DatePicker
         selectedDate={employeeData.startDate}
         onChange={(date) => handleDateChange('startDate', date)}
@@ -100,7 +100,7 @@ const EmployeeForm = () => {
 
         <AutoComplete options={states} onSelect={handleStateSelect} />
 
-        <label htmlFor="zip-code">Zip Code</label>
+        <label htmlFor="zipCode">Zip Code</label>
         <input type="number" id="zipCode" onChange={handleInputChange} />
       </fieldset>
 
@@ -122,6 +122,7 @@ const EmployeeForm = () => {
       </Modal>
     </form>
   );
+  
 };
 
 export default EmployeeForm;
