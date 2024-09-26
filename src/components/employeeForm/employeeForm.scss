@@ -1,0 +1,49 @@
+.container {
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: left;
+}
+
+.form{
+  display: flex;
+  flex-direction: column;
+
+  .save{
+    width: 60px;
+    height: 30px;
+    text-align: center;
+    margin: 15px auto;
+    padding: 5px;
+    background-color: #5a6f02;
+    border-radius: 5px;
+    color: white;
+    transition: all 0.3s ease;
+
+    &:hover {
+        text-decoration: none;
+        background-color: #94af11;
+        color: black;
+        transform: scale(1.05);
+        // box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
+label {
+  display: block;
+  margin-top: 1rem;
+  margin-bottom: 10px;
+}
+
+.address {
+  margin-top: 10px;
+  padding: 10px;
+}
+
+.error {
+    color: red;
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
