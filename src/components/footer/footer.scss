@@ -1,0 +1,16 @@
+.footer {
+    display: flex;
+    justify-content: center;
+    height: 60px;
+    box-shadow: 0 0 10px 0 rgba(110, 135, 6, 0.6);
+
+  &_img{
+    width: 30px;
+    height: 30px;
+    margin: auto 0;
+  }
+
+  &_text{
+    margin: auto 0;
+  }
+}
