@@ -1,33 +1,30 @@
-import {BrowserRouter as Router, Route, Routes, Navigate} from "react-router-dom";
-
-import Home from "../pages/home/Home";
-import CreateEmployee from "../pages/createEmployee/CreateEmployee";
-import EmployeeList from "../pages/employeeList/EmployeeList";
-import Error404 from "../pages/error/Error404";
-
-import Header from "../components/header/Header";
-import Footer from "../components/footer/Footer";
-
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import { lazy, Suspense } from "react"; 
 import './App.scss';
+
+const Home = lazy(() => import("../pages/home/Home"));
+const CreateEmployee = lazy(() => import("../pages/createEmployee/CreateEmployee"));
+const EmployeeList = lazy(() => import("../pages/employeeList/EmployeeList"));
+const Error404 = lazy(() => import("../pages/error/Error404"));
+const Header = lazy(() => import("../components/header/Header"));
+const Footer = lazy(() => import("../components/footer/Footer"));
 
 function App() {
     return (
         <Router>
-            <Header />
-            <Routes>
-                {/* Redirections : Redirect old or alternative paths to the updated paths */}
-                <Route path="/employee-list" element={<Navigate to="/list" />} />
-
-                {/* Routes normales : Define the routes for the application */}
-                <Route path="/" element={<Home />} />
-                <Route path="/create" element={<CreateEmployee />} />
-                <Route path="/list" element={<EmployeeList />} />
-                <Route path="*" element={<Error404 />} />
-            </Routes>
-            <Footer />
+            <Suspense fallback={<div>Loading...</div>}>
+                <Header />
+                <Routes>
+                    <Route path="/employee-list" element={<Navigate to="/list" />} />
+                    <Route path="/" element={<Home />} />
+                    <Route path="/create" element={<CreateEmployee />} />
+                    <Route path="/list" element={<EmployeeList />} />
+                    <Route path="*" element={<Error404 />} />
+                </Routes>
+                <Footer />
+            </Suspense>
         </Router>
-    )
-  
+    );
 }
 
-export default App
+export default App;

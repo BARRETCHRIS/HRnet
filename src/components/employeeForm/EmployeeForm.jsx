@@ -1,14 +1,16 @@
-import { useState } from "react";
-import AutoComplete from "../autoComplete/AutoComplete";
-import DatePicker from "../datePicker/DatePicker";
+import React, { useState, lazy, Suspense, useEffect } from "react";
 import { states } from "../../data/states";
-import Modal from "../modal/Modal";
-import { validateForm } from "../../utils/validation"; // Import de la validation
+import { validateForm } from "../../utils/validation";
+import useForm from "../../hooks/useForm"; // Assurez-vous d'importer le hook
 
-import './employeeForm.scss'
+import './employeeForm.scss';
+
+const AutoComplete = lazy(() => import("../autoComplete/AutoComplete"));
+const DatePicker = lazy(() => import("../datePicker/DatePicker"));
+const Modal = lazy(() => import("../modal/Modal"));
 
 const EmployeeForm = () => {
-  const [employeeData, setEmployeeData] = useState({
+  const initialEmployeeData = {
     firstName: '',
     lastName: '',
     dateOfBirth: null,
@@ -18,12 +20,13 @@ const EmployeeForm = () => {
     state: states[0].abbreviation, // État par défaut : Alabama
     zipCode: '',
     department: '',
-  });
+  };
 
-  const [errors, setErrors] = useState({}); // Ajout d'un state pour les erreurs
+  // Utilisation de useForm pour gérer les données du formulaire et les erreurs
+  const { values, errors, handleChange, setValues, setErrors } = useForm(initialEmployeeData); // Assurez-vous d'importer setValues
   const [isModalOpen, setModalOpen] = useState(false);
 
-  // Fonction pour formater les dates au format jour/mois/année
+   // Fonction pour formater les dates au format jour/mois/année
   const formatDateToDDMMYYYY = (date) => {
     if (!date) return null;
     const day = String(date.getDate()).padStart(2, '0');
@@ -32,52 +35,45 @@ const EmployeeForm = () => {
     return `${day}/${month}/${year}`;
   };
 
-  const handleInputChange = (e) => {
-    const { id, value } = e.target;
-    setEmployeeData((prevData) => ({
-      ...prevData,
-      [id]: value,
-    }));
-  };
-
   const handleDateChange = (key, date) => {
-    setEmployeeData((prevData) => ({
-      ...prevData,
+    // Mettez à jour le champ de date dans les valeurs
+    setValues((prevValues) => ({
+      ...prevValues,
       [key]: date,
     }));
   };
 
   const handleStateSelect = (selectedState) => {
-    setEmployeeData((prevData) => ({
-      ...prevData,
+    // Mettez à jour l'état dans les valeurs
+    setValues((prevValues) => ({
+      ...prevValues,
       state: selectedState.abbreviation,
     }));
   };
 
   const handleSave = () => {
-    // Validation des données avant de les sauvegarder
-    const validationErrors = validateForm(employeeData);
+    const validationErrors = validateForm(values);
 
     if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors); // Si erreurs, on les stocke dans le state
-      return;
+        setErrors(validationErrors);
+        return;
     }
 
-    // Si pas d'erreurs, formatage des dates avant d'enregistrer les données
     const formattedEmployeeData = {
-      ...employeeData,
-      dateOfBirth: formatDateToDDMMYYYY(employeeData.dateOfBirth),
-      startDate: formatDateToDDMMYYYY(employeeData.startDate),
+        ...values,
+        dateOfBirth: formatDateToDDMMYYYY(values.dateOfBirth),
+        startDate: formatDateToDDMMYYYY(values.startDate),
     };
 
     const employees = JSON.parse(localStorage.getItem('employees')) || [];
     employees.push(formattedEmployeeData);
+    
+    // Écrire les données dans localStorage
     localStorage.setItem('employees', JSON.stringify(employees));
 
-    console.log('Employee Data Saved:', formattedEmployeeData); // Vérification des données enregistrées
-
+    console.log('Employee Data Saved:', formattedEmployeeData);
     setModalOpen(true);
-    setErrors({}); // Réinitialiser les erreurs si le formulaire est valide
+    setErrors({});
   };
 
   return (
@@ -85,34 +81,42 @@ const EmployeeForm = () => {
       <label htmlFor="firstName">First Name</label>
       <input
         type="text"
+        name="firstName" // Assurez-vous que le nom correspond au champ
         id="firstName"
-        onChange={handleInputChange}
-        className={errors.firstName ? 'error' : ''} // Ajout d'une classe en cas d'erreur
+        value={values.firstName}
+        onChange={handleChange}
+        className={errors.firstName ? 'error' : ''}
       />
-      {errors.firstName && <span className="error">{errors.firstName}</span>} {/* Message d'erreur avec la classe "error" */}
+      {errors.firstName && <span className="error">{errors.firstName}</span>}
 
       <label htmlFor="lastName">Last Name</label>
       <input
         type="text"
+        name="lastName" // Assurez-vous que le nom correspond au champ
         id="lastName"
-        onChange={handleInputChange}
-        className={errors.lastName ? 'error' : ''} // Ajout d'une classe en cas d'erreur
+        value={values.lastName}
+        onChange={handleChange}
+        className={errors.lastName ? 'error' : ''}
       />
-      {errors.lastName && <span className="error">{errors.lastName}</span>} {/* Message d'erreur avec la classe "error" */}
+      {errors.lastName && <span className="error">{errors.lastName}</span>}
 
       <label htmlFor="dateOfBirth">Date of Birth</label>
-      <DatePicker
-        id="dateOfBirth"
-        selectedDate={employeeData.dateOfBirth}
-        onChange={(date) => handleDateChange('dateOfBirth', date)}
-      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <DatePicker
+          id="dateOfBirth"
+          selectedDate={values.dateOfBirth}
+          onChange={(date) => handleDateChange('dateOfBirth', date)}
+        />
+      </Suspense>
 
       <label htmlFor="startDate">Start Date</label>
-      <DatePicker
-        id="startDate"
-        selectedDate={employeeData.startDate}
-        onChange={(date) => handleDateChange('startDate', date)}
-      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <DatePicker
+          id="startDate"
+          selectedDate={values.startDate}
+          onChange={(date) => handleDateChange('startDate', date)}
+        />
+      </Suspense>
 
       <fieldset className="address">
         <legend>Address</legend>
@@ -120,35 +124,41 @@ const EmployeeForm = () => {
         <label htmlFor="street">Street</label>
         <input
           type="text"
+          name="street" // Assurez-vous que le nom correspond au champ
           id="street"
-          onChange={handleInputChange}
+          value={values.street}
+          onChange={handleChange}
           className={errors.street ? 'error' : ''}
         />
-        {errors.street && <span className="error">{errors.street}</span>} {/* Message d'erreur avec la classe "error" */}
+        {errors.street && <span className="error">{errors.street}</span>}
 
         <label htmlFor="city">City</label>
         <input
           type="text"
+          name="city" // Assurez-vous que le nom correspond au champ
           id="city"
-          onChange={handleInputChange}
+          value={values.city}
+          onChange={handleChange}
           className={errors.city ? 'error' : ''}
         />
-        {errors.city && <span className="error">{errors.city}</span>} {/* Message d'erreur avec la classe "error" */}
+        {errors.city && <span className="error">{errors.city}</span>}
 
         <AutoComplete options={states} onSelect={handleStateSelect} />
 
         <label htmlFor="zipCode">Zip Code</label>
         <input
           type="number"
+          name="zipCode" // Assurez-vous que le nom correspond au champ
           id="zipCode"
-          onChange={handleInputChange}
+          value={values.zipCode}
+          onChange={handleChange}
           className={errors.zipCode ? 'error' : ''}
         />
-        {errors.zipCode && <span className="error">{errors.zipCode}</span>} {/* Message d'erreur avec la classe "error" */}
+        {errors.zipCode && <span className="error">{errors.zipCode}</span>}
       </fieldset>
 
       <label htmlFor="department">Department</label>
-      <select id="department" onChange={handleInputChange}>
+      <select id="department" name="department" onChange={handleChange}>
         <option value="Sales">Sales</option>
         <option value="Marketing">Marketing</option>
         <option value="Engineering">Engineering</option>
@@ -169,18 +179,20 @@ const EmployeeForm = () => {
 
 export default EmployeeForm;
 
-
-// import { useState } from "react";
-// import AutoComplete from "../autoComplete/AutoComplete";
-// import DatePicker from "../datePicker/DatePicker";
+// import React, { useState, lazy, Suspense } from "react";
 // import { states } from "../../data/states";
+// // import Modal from "../modal/Modal";
 // import { validateForm } from "../../utils/validation";
-// import Modal from "../modal/Modal";
+// import useForm from "../../hooks/useForm"; // Assurez-vous d'importer le hook
 
-// import './employeeForm.scss'
+// import './employeeForm.scss';
+
+// const AutoComplete = lazy(() => import("../autoComplete/AutoComplete"));
+// const DatePicker = lazy(() => import("../datePicker/DatePicker"));
+// const Modal = lazy(() => import("../modal/Modal"));
 
 // const EmployeeForm = () => {
-//   const [employeeData, setEmployeeData] = useState({
+//   const initialEmployeeData = {
 //     firstName: '',
 //     lastName: '',
 //     dateOfBirth: null,
@@ -190,9 +202,10 @@ export default EmployeeForm;
 //     state: states[0].abbreviation, // État par défaut : Alabama
 //     zipCode: '',
 //     department: '',
-//   });
+//   };
 
-//   const [errors, setErrors] = useState({}); // Ajout d'un state pour les erreurs
+//   // Utilisation de useForm pour gérer les données du formulaire et les erreurs
+//   const { values, errors, handleChange, setValues, setErrors } = useForm(initialEmployeeData); // Assurez-vous d'importer setValues
 //   const [isModalOpen, setModalOpen] = useState(false);
 
 //   // Fonction pour formater les dates au format jour/mois/année
@@ -204,34 +217,36 @@ export default EmployeeForm;
 //     return `${day}/${month}/${year}`;
 //   };
 
-//   const handleInputChange = (e) => {
-//     const { id, value } = e.target;
-//     setEmployeeData((prevData) => ({
-//       ...prevData,
-//       [id]: value,
-//     }));
-//   };
-
 //   const handleDateChange = (key, date) => {
-//     setEmployeeData((prevData) => ({
-//       ...prevData,
+//     // Mettez à jour le champ de date dans les valeurs
+//     setValues((prevValues) => ({
+//       ...prevValues,
 //       [key]: date,
 //     }));
 //   };
 
 //   const handleStateSelect = (selectedState) => {
-//     setEmployeeData((prevData) => ({
-//       ...prevData,
+//     // Mettez à jour l'état dans les valeurs
+//     setValues((prevValues) => ({
+//       ...prevValues,
 //       state: selectedState.abbreviation,
 //     }));
 //   };
 
 //   const handleSave = () => {
-//     // Formatage des dates avant d'enregistrer les données
+//     // Validation des données avant de les sauvegarder
+//     const validationErrors = validateForm(values);
+
+//     if (Object.keys(validationErrors).length > 0) {
+//       setErrors(validationErrors); // Si erreurs, on les stocke dans le state
+//       return;
+//     }
+
+//     // Si pas d'erreurs, formatage des dates avant d'enregistrer les données
 //     const formattedEmployeeData = {
-//       ...employeeData,
-//       dateOfBirth: formatDateToDDMMYYYY(employeeData.dateOfBirth),
-//       startDate: formatDateToDDMMYYYY(employeeData.startDate),
+//       ...values,
+//       dateOfBirth: formatDateToDDMMYYYY(values.dateOfBirth),
+//       startDate: formatDateToDDMMYYYY(values.startDate),
 //     };
 
 //     const employees = JSON.parse(localStorage.getItem('employees')) || [];
@@ -241,47 +256,92 @@ export default EmployeeForm;
 //     console.log('Employee Data Saved:', formattedEmployeeData); // Vérification des données enregistrées
 
 //     setModalOpen(true);
+//     setErrors({}); // Réinitialiser les erreurs si le formulaire est valide
 //   };
 
 //   return (
 //     <form className="form">
 //       <label htmlFor="firstName">First Name</label>
-//       <input type="text" id="firstName" onChange={handleInputChange} />
+//       <input
+//         type="text"
+//         name="firstName" // Assurez-vous que le nom correspond au champ
+//         id="firstName"
+//         value={values.firstName}
+//         onChange={handleChange}
+//         className={errors.firstName ? 'error' : ''}
+//       />
+//       {errors.firstName && <span className="error">{errors.firstName}</span>}
 
 //       <label htmlFor="lastName">Last Name</label>
-//       <input type="text" id="lastName" onChange={handleInputChange} />
+//       <input
+//         type="text"
+//         name="lastName" // Assurez-vous que le nom correspond au champ
+//         id="lastName"
+//         value={values.lastName}
+//         onChange={handleChange}
+//         className={errors.lastName ? 'error' : ''}
+//       />
+//       {errors.lastName && <span className="error">{errors.lastName}</span>}
 
 //       <label htmlFor="dateOfBirth">Date of Birth</label>
-//       <DatePicker
-//         id="dateOfBirth"
-//         selectedDate={employeeData.dateOfBirth}
-//         onChange={(date) => handleDateChange('dateOfBirth', date)}
-//       />
+//       <Suspense fallback={<div>Loading...</div>}>
+//         <DatePicker
+//           id="dateOfBirth"
+//           selectedDate={values.dateOfBirth}
+//           onChange={(date) => handleDateChange('dateOfBirth', date)}
+//         />
+//       </Suspense>
 
 //       <label htmlFor="startDate">Start Date</label>
-//       <DatePicker
-//         id="startDate"
-//         selectedDate={employeeData.startDate}
-//         onChange={(date) => handleDateChange('startDate', date)}
-//       />
+//       <Suspense fallback={<div>Loading...</div>}>
+//         <DatePicker
+//           id="startDate"
+//           selectedDate={values.startDate}
+//           onChange={(date) => handleDateChange('startDate', date)}
+//         />
+//       </Suspense>
 
 //       <fieldset className="address">
 //         <legend>Address</legend>
 
 //         <label htmlFor="street">Street</label>
-//         <input type="text" id="street" onChange={handleInputChange} />
+//         <input
+//           type="text"
+//           name="street" // Assurez-vous que le nom correspond au champ
+//           id="street"
+//           value={values.street}
+//           onChange={handleChange}
+//           className={errors.street ? 'error' : ''}
+//         />
+//         {errors.street && <span className="error">{errors.street}</span>}
 
 //         <label htmlFor="city">City</label>
-//         <input type="text" id="city" onChange={handleInputChange} />
+//         <input
+//           type="text"
+//           name="city" // Assurez-vous que le nom correspond au champ
+//           id="city"
+//           value={values.city}
+//           onChange={handleChange}
+//           className={errors.city ? 'error' : ''}
+//         />
+//         {errors.city && <span className="error">{errors.city}</span>}
 
 //         <AutoComplete options={states} onSelect={handleStateSelect} />
 
 //         <label htmlFor="zipCode">Zip Code</label>
-//         <input type="number" id="zipCode" onChange={handleInputChange} />
+//         <input
+//           type="number"
+//           name="zipCode" // Assurez-vous que le nom correspond au champ
+//           id="zipCode"
+//           value={values.zipCode}
+//           onChange={handleChange}
+//           className={errors.zipCode ? 'error' : ''}
+//         />
+//         {errors.zipCode && <span className="error">{errors.zipCode}</span>}
 //       </fieldset>
 
 //       <label htmlFor="department">Department</label>
-//       <select id="department" onChange={handleInputChange}>
+//       <select id="department" name="department" onChange={handleChange}>
 //         <option value="Sales">Sales</option>
 //         <option value="Marketing">Marketing</option>
 //         <option value="Engineering">Engineering</option>
@@ -298,7 +358,6 @@ export default EmployeeForm;
 //       </Modal>
 //     </form>
 //   );
-  
 // };
 
 // export default EmployeeForm;

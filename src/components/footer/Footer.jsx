@@ -1,6 +1,6 @@
 import './footer.scss';
 
-import Logo from '../../assets/logo.png';
+import Logo from '../../assets/logo.webp';
 
 function Footer(){
     return (
