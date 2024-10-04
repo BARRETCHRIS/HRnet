@@ -1,0 +1,5 @@
+User-agent: *
+Disallow:
+
+# Optionnel : autoriser l'accès au sitemap si nécessaire
+Sitemap: https://www.example.com/sitemap.xml

@@ -1,10 +1,18 @@
+.list-title {
+  margin-bottom: 10px;
+}
 .container {
   width: 80%;
   margin: 0 auto;
   padding: 20px;
 }
 
-.table-controls {
+button:focus {
+    outline: 2px solid #005fcc; /* Mettez en surbrillance l'élément au focus */
+    outline-offset: 2px;
+}
+
+.table-controls, .pagination-controls {
     width: 100%;
     display: flex;
     justify-content: space-between;
@@ -17,6 +25,36 @@
     input {
     padding: 5px;
     }
+}
+
+.table-controls-size{
+  margin: auto 0;
+  display: flex;
+   
+    &-select{
+      margin: 0 5px;
+    }
+}
+
+.search-container {
+    position: relative;
+    display: flex;
+}
+
+.search-input {
+    padding-right: 24px; /* Pour laisser de l'espace pour la croix */
+    margin-left: 5px;
+}
+
+.clear-button {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
 }
 
 .employee-table {
@@ -33,10 +71,51 @@
 
 .employee-table th {
   background-color: #f2f2f2;
+
+  .header-cell{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 
 .employee-table tr:nth-child(even) {
   background-color: #f9f9f9;
+}
+
+.sorting-icons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: 5px;
+}
+
+.chevron-up,
+.chevron-down {
+  width: 16px;
+  height: 16px;
+  opacity: 0.5; /* Icônes grises par défaut */
+}
+
+.chevron-up.active,
+.chevron-down.active {
+  opacity: 1; /* Icônes noires ou en couleur lorsqu'elles sont actives */
+}
+
+.chevron-up:not(.active) {
+  visibility: visible; /* Rendre visible lorsque le tri n'est pas ascendant */
+}
+
+.chevron-down:not(.active) {
+  visibility: visible; /* Rendre visible lorsque le tri n'est pas descendant */
+}
+
+.chevron-up.active + .chevron-down {
+  visibility: hidden; /* Masquer le chevron descendant si trié ascendant */
+}
+
+.chevron-down.active + .chevron-up {
+  visibility: hidden; /* Masquer le chevron ascendant si trié descendant */
 }
 
 .pagination {

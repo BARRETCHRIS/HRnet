@@ -10,11 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tanstack/react-table": "^8.20.5",
     "react": "^18.3.1",
     "react-datepicker": "^7.4.0",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2",
-    "react-table": "^7.8.0",
     "sass": "^1.79.3"
   },
   "devDependencies": {
