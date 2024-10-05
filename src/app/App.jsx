@@ -10,9 +10,6 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-d
 // - Suspense : Affiche un fallback en attendant le chargement des composants asynchrones, évitant des retards visibles dans l'interface utilisateur.
 import { lazy, Suspense } from "react";
 
-// Importation des styles spécifiques de l'application, qui couvrent probablement la mise en page et les éléments visuels principaux.
-import './App.scss';
-
 // Implémentation du lazy loading pour plusieurs composants.
 // Ces composants ne sont chargés qu'au moment où l'utilisateur en a besoin, minimisant ainsi le temps de chargement initial de l'application
 // et améliorant l'expérience utilisateur en optimisant l'utilisation des ressources.
@@ -82,35 +79,3 @@ function App() {
 // Exportation du composant 'App' pour qu'il soit utilisé dans d'autres parties de l'application, en particulier dans le fichier main.jsx.
 // Cela suit le modèle modulaire de React, où chaque composant peut être isolé, testé et réutilisé de manière flexible.
 export default App;
-
-
-// import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
-// import { lazy, Suspense } from "react"; 
-// import './App.scss';
-
-// const Home = lazy(() => import("../pages/home/Home"));
-// const CreateEmployee = lazy(() => import("../pages/createEmployee/CreateEmployee"));
-// const EmployeeList = lazy(() => import("../pages/employeeList/EmployeeList"));
-// const Error404 = lazy(() => import("../pages/error/Error404"));
-// const Header = lazy(() => import("../components/header/Header"));
-// const Footer = lazy(() => import("../components/footer/Footer"));
-
-// function App() {
-//     return (
-//         <Router>
-//             <Suspense fallback={<div>Loading...</div>}>
-//                 <Header />
-//                 <Routes>
-//                     <Route path="/employee-list" element={<Navigate to="/list" />} />
-//                     <Route path="/" element={<Home />} />
-//                     <Route path="/create" element={<CreateEmployee />} />
-//                     <Route path="/list" element={<EmployeeList />} />
-//                     <Route path="*" element={<Error404 />} />
-//                 </Routes>
-//                 <Footer />
-//             </Suspense>
-//         </Router>
-//     );
-// }
-
-// export default App;

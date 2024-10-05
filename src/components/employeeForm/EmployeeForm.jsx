@@ -1,7 +1,7 @@
 // Importation des hooks React nécessaires à la gestion de l'état local et des effets.
 // - useState : Permet de gérer les champs du formulaire et l'état du modal.
 // - lazy et Suspense : Utilisés pour charger dynamiquement certains composants, optimisant ainsi les performances en chargeant ces composants uniquement lorsque nécessaire.
-import React, { useState, lazy, Suspense, useEffect } from "react";
+import React, { useState, lazy, Suspense } from "react";
 
 // Importation des données nécessaires pour le formulaire, comme la liste des états.
 // - states : Tableau d'objets contenant les abréviations des états, utilisé pour la sélection de l'état.
@@ -23,6 +23,10 @@ import './employeeForm.scss';
 const AutoComplete = lazy(() => import("../autoComplete/AutoComplete"));
 const DatePicker = lazy(() => import("../datePicker/DatePicker"));
 const Modal = lazy(() => import("../modal/Modal"));
+// const states = lazy(() => import("../../data/states"));
+// const validateForm = lazy(() => import("../../utils/validation"));
+// const useForm = lazy(() => import("../../hooks/useForm"));
+
 
 // Définition du composant fonctionnel 'EmployeeForm', qui encapsule la logique de création et de soumission des données d'un nouvel employé.
 const EmployeeForm = () => {
