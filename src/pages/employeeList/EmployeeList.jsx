@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import './employeeList.scss';
 
-import ChevronUp from '../../assets/chevronUp.svg';
-import ChevronDown from '../../assets/chevronDown.svg';
+import ChevronUp from '../../assets/chevronUp.svg';  // Icône pour le tri ascendant
+import ChevronDown from '../../assets/chevronDown.svg';  // Icône pour le tri descendant
 
 import {
     flexRender,
@@ -12,24 +12,27 @@ import {
     getSortedRowModel,
     getPaginationRowModel,
     getFilteredRowModel,
-} from '@tanstack/react-table';
+} from '@tanstack/react-table';  // Importation des fonctions nécessaires pour créer la table
 
+// Composant principal pour afficher la liste des employés
 export default function EmployeeList() {
+    // État pour stocker les employés et le filtre global
     const [employees, setEmployees] = useState([]);
     const [globalFilter, setGlobalFilter] = useState('');
 
-    // Charger les employés depuis localStorage
+    // Charger les employés depuis localStorage au démarrage du composant
     useEffect(() => {
         const storedEmployees = JSON.parse(localStorage.getItem('employees')) || [];
         setEmployees(storedEmployees);
     }, []);
 
-    const columnHelper = createColumnHelper();
+    const columnHelper = createColumnHelper();  // Création d'un helper pour définir les colonnes
 
+    // Définition des colonnes de la table
     const columns = [
         columnHelper.accessor('firstName', {
-            header: () => 'First Name',
-            cell: info => info.renderValue(),
+            header: () => 'First Name',  // En-tête de colonne
+            cell: info => info.renderValue(),  // Rendu de la valeur de la cellule
         }),
         columnHelper.accessor('lastName', {
             header: () => 'Last Name',
@@ -65,6 +68,7 @@ export default function EmployeeList() {
         }),
     ];
 
+    // Configuration de la table avec des fonctionnalités avancées comme le tri, la pagination, et le filtrage
     const table = useReactTable({
         columns,
         data: employees,
@@ -83,6 +87,7 @@ export default function EmployeeList() {
         onGlobalFilterChange: setGlobalFilter, // Mise à jour du filtre global
     });
 
+    // Calcul des indices de pagination pour afficher les entrées
     const paginationStart = table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1;
     const paginationEnd = Math.min(
         (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
@@ -103,6 +108,7 @@ export default function EmployeeList() {
                         value={table.getState().pagination.pageSize}
                         onChange={e => table.setPageSize(Number(e.target.value))}
                     >
+                        {/* Options pour le sélecteur de taille de page */}
                         {[10, 25, 50, 100].map(pageSize => (
                             <option key={pageSize} value={pageSize}>
                                 {pageSize}
@@ -138,7 +144,7 @@ export default function EmployeeList() {
                     {table.getHeaderGroups().map(headerGroup => (
                         <tr key={headerGroup.id} role="row">
                             {headerGroup.headers.map(header => (
-                                <th key={header.id}  role="columnheader">
+                                <th key={header.id} role="columnheader">
                                     <div onClick={header.column.getToggleSortingHandler()} className="header-cell">
                                         {header.isPlaceholder
                                             ? null
@@ -185,19 +191,19 @@ export default function EmployeeList() {
                 <div>
                     <button
                         onClick={() => table.previousPage()}
-                        disabled={!table.getCanPreviousPage()}
+                        disabled={!table.getCanPreviousPage()}  // Désactiver si pas de page précédente
                         aria-label="Go to previous page">
                         Previous
                     </button>
                     <span>
                         Page{' '}
                         <strong>
-                            {table.getState().pagination.pageIndex + 1}
+                            {table.getState().pagination.pageIndex + 1}  {/* Affichage du numéro de page courant */}
                         </strong>
                     </span>
                     <button
                         onClick={() => table.nextPage()}
-                        disabled={!table.getCanNextPage()}
+                        disabled={!table.getCanNextPage()}  // Désactiver si pas de page suivante
                         aria-label="Go to next page">
                         Next
                     </button>
