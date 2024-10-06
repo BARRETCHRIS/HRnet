@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import './employeeList.scss';
+import { useEffect, useState } from 'react'; // Importation des hooks React
+import './employeeList.scss';// Importation du style associé à la liste des employés
 
 import ChevronUp from '../../assets/chevronUp.svg';  // Icône pour le tri ascendant
 import ChevronDown from '../../assets/chevronDown.svg';  // Icône pour le tri descendant
@@ -14,17 +14,13 @@ import {
     getFilteredRowModel,
 } from '@tanstack/react-table';  // Importation des fonctions nécessaires pour créer la table
 
+import { useEmployee } from '../../context/EmployeeContext';  // Importe le contexte des employés
+
 // Composant principal pour afficher la liste des employés
 export default function EmployeeList() {
-    // État pour stocker les employés et le filtre global
-    const [employees, setEmployees] = useState([]);
+    // Utilise le contexte pour obtenir les employés
+    const { employees } = useEmployee();  // Extrait les employés du contexte
     const [globalFilter, setGlobalFilter] = useState('');
-
-    // Charger les employés depuis localStorage au démarrage du composant
-    useEffect(() => {
-        const storedEmployees = JSON.parse(localStorage.getItem('employees')) || [];
-        setEmployees(storedEmployees);
-    }, []);
 
     const columnHelper = createColumnHelper();  // Création d'un helper pour définir les colonnes
 
@@ -71,10 +67,10 @@ export default function EmployeeList() {
     // Configuration de la table avec des fonctionnalités avancées comme le tri, la pagination, et le filtrage
     const table = useReactTable({
         columns,
-        data: employees,
+        data: employees, 
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),  // Ajout de la pagination
+        getPaginationRowModel: getPaginationRowModel(),
         initialState: {
             pagination: {
                 pageSize: 10,  // Nombre de lignes affichées par défaut
@@ -82,7 +78,7 @@ export default function EmployeeList() {
         },
         getFilteredRowModel: getFilteredRowModel(), // Utilisation du filtrage global
         state: {
-            globalFilter, // Lier l'état de recherche globale à la table
+            globalFilter, // Lie l'état de recherche globale à la table
         },
         onGlobalFilterChange: setGlobalFilter, // Mise à jour du filtre global
     });
@@ -95,7 +91,7 @@ export default function EmployeeList() {
     );
 
     return (
-        <main id="employee-div" className="wrapper container">
+        <main id="employee-div" className="wrapper container-list">
             <h2 className='list-title'>Current Employees</h2>
 
             {/* Barre de recherche globale et sélecteur du nombre de lignes */}
@@ -103,7 +99,7 @@ export default function EmployeeList() {
                 <article className='table-controls-size'>
                     <label htmlFor="page-size-select">Show Entry:</label>
                     <select
-                        id="page-size-select"  // Associer le label à cet id
+                        id="page-size-select"  // Associe le label à cet id
                         className='table-controls-size-select'
                         value={table.getState().pagination.pageSize}
                         onChange={e => table.setPageSize(Number(e.target.value))}
@@ -131,7 +127,7 @@ export default function EmployeeList() {
                     {globalFilter && (
                         <button
                             className="clear-button"
-                            onClick={() => setGlobalFilter('')}  // Vider le champ de recherche
+                            onClick={() => setGlobalFilter('')}  // Vide le champ de recherche
                         >
                             &#x2715; {/* Symbole de croix (X) */}
                         </button>
@@ -191,7 +187,7 @@ export default function EmployeeList() {
                 <div>
                     <button
                         onClick={() => table.previousPage()}
-                        disabled={!table.getCanPreviousPage()}  // Désactiver si pas de page précédente
+                        disabled={!table.getCanPreviousPage()}  // Désactive si pas de page précédente
                         aria-label="Go to previous page">
                         Previous
                     </button>
@@ -203,7 +199,7 @@ export default function EmployeeList() {
                     </span>
                     <button
                         onClick={() => table.nextPage()}
-                        disabled={!table.getCanNextPage()}  // Désactiver si pas de page suivante
+                        disabled={!table.getCanNextPage()}  // Désactive si pas de page suivante
                         aria-label="Go to next page">
                         Next
                     </button>

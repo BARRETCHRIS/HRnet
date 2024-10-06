@@ -1,136 +1,100 @@
-// Importation des hooks React nécessaires à la gestion de l'état local et des effets.
-// - useState : Permet de gérer les champs du formulaire et l'état du modal.
-// - lazy et Suspense : Utilisés pour charger dynamiquement certains composants, optimisant ainsi les performances en chargeant ces composants uniquement lorsque nécessaire.
-import React, { useState, lazy, Suspense } from "react";
+import React, { useState, lazy, Suspense } from "react";  // Importation de React et des hooks nécessaires
+import { states } from "../../data/states";  // Importation des données des états
+import { validateForm } from "../../utils/validation";  // Importation de la fonction de validation des formulaires
+import useForm from "../../hooks/useForm";  // Importation du hook personnalisé pour gérer l'état du formulaire
+import { useEmployee } from '../../context/EmployeeContext';  // Importation du contexte pour la gestion des employés
 
-// Importation des données nécessaires pour le formulaire, comme la liste des états.
-// - states : Tableau d'objets contenant les abréviations des états, utilisé pour la sélection de l'état.
-import { states } from "../../data/states";
+import './employeeForm.scss';  // Importation des styles pour le formulaire des employés
 
-// Importation des utilitaires de validation pour vérifier les données saisies dans le formulaire avant leur soumission.
-import { validateForm } from "../../utils/validation";
+// Chargement dynamique des composants pour optimiser les performances de l'application
+const AutoComplete = lazy(() => import("../autoComplete/AutoComplete"));  // Composant d'auto-complétion pour les états
+const DatePicker = lazy(() => import("../datePicker/DatePicker"));  // Composant de sélection de date
+const Modal = lazy(() => import("../modal/Modal"));  // Composant de modal pour afficher des messages
 
-// Importation d'un hook personnalisé useForm pour encapsuler la logique de gestion de formulaire (gestion des valeurs et des erreurs).
-import useForm from "../../hooks/useForm";
-
-// Importation des styles spécifiques au formulaire d'employé.
-import './employeeForm.scss';
-
-// Chargement dynamique des composants avec React.lazy, permettant d'améliorer la performance en ne chargeant ces composants que lorsqu'ils sont nécessaires.
-// AutoComplete : Composant pour suggérer et sélectionner des valeurs automatiquement.
-// DatePicker : Composant de sélection de date.
-// Modal : Composant modal affiché après la création réussie d'un employé.
-const AutoComplete = lazy(() => import("../autoComplete/AutoComplete"));
-const DatePicker = lazy(() => import("../datePicker/DatePicker"));
-const Modal = lazy(() => import("../modal/Modal"));
-// const states = lazy(() => import("../../data/states"));
-// const validateForm = lazy(() => import("../../utils/validation"));
-// const useForm = lazy(() => import("../../hooks/useForm"));
-
-
-// Définition du composant fonctionnel 'EmployeeForm', qui encapsule la logique de création et de soumission des données d'un nouvel employé.
+// Composant principal pour le formulaire d'employé
 const EmployeeForm = () => {
-  // Initialisation des valeurs du formulaire avec un objet représentant un employé.
-  // Chaque champ est géré par useForm pour faciliter la gestion des erreurs et des valeurs.
-  const initialEmployeeData = {
+  const { addEmployee } = useEmployee();  // Accès à la fonction d'ajout d'employé depuis le contexte
+  const initialEmployeeData = {  // État initial des données de l'employé
     firstName: '',
     lastName: '',
     dateOfBirth: null,
     startDate: null,
     street: '',
     city: '',
-    state: states[0].abbreviation, // L'état par défaut est défini sur Alabama.
+    state: states[0].abbreviation,  // Définition de l'état par défaut
     zipCode: '',
     department: '',
   };
 
-  // Utilisation du hook personnalisé useForm pour gérer les champs du formulaire.
-  // - values : Contient les valeurs des champs du formulaire.
-  // - errors : Contient les erreurs de validation pour chaque champ.
-  // - handleChange : Fonction pour mettre à jour les valeurs lorsque l'utilisateur saisit des informations.
+  // Utilisation du hook personnalisé pour gérer les valeurs et les erreurs du formulaire
   const { values, errors, handleChange, setValues, setErrors } = useForm(initialEmployeeData);
+  const [isModalOpen, setModalOpen] = useState(false);  // État pour gérer l'affichage du modal
 
-  // État pour contrôler l'affichage du modal de confirmation après la création réussie d'un employé.
-  const [isModalOpen, setModalOpen] = useState(false);
-
-  // Fonction utilitaire pour formater les dates en format 'jour/mois/année'.
-  // Cela garantit que les dates sont affichées de manière cohérente dans l'interface.
+  // Fonction pour formater la date au format DD/MM/YYYY
   const formatDateToDDMMYYYY = (date) => {
-    if (!date) return null;
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Le mois est indexé à partir de 0.
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+    if (!date) return null;  // Retourne null si aucune date n'est fournie
+    const day = String(date.getDate()).padStart(2, '0');  // Ajoute un zéro devant le jour si nécessaire
+    const month = String(date.getMonth() + 1).padStart(2, '0');  // Ajoute un zéro devant le mois si nécessaire
+    const year = date.getFullYear();  // Récupère l'année
+    return `${day}/${month}/${year}`;  // Retourne la date au format souhaité
   };
 
-  // Gestionnaire de changement de date, utilisé pour mettre à jour les champs de dates du formulaire.
-  // - key : Correspond au champ de date à mettre à jour (dateOfBirth ou startDate).
-  // - date : Nouvelle valeur de date sélectionnée par l'utilisateur.
+  // Fonction pour gérer le changement de date dans le formulaire
   const handleDateChange = (key, date) => {
     setValues((prevValues) => ({
       ...prevValues,
-      [key]: date,
+      [key]: date,  // Met à jour la valeur correspondant à la clé spécifiée
     }));
   };
 
-  // Gestionnaire de sélection d'état (state) dans le formulaire.
-  // - selectedState : Objet représentant l'état sélectionné dans la liste des options.
+  // Fonction pour gérer la sélection d'un état
   const handleStateSelect = (selectedState) => {
     setValues((prevValues) => ({
       ...prevValues,
-      state: selectedState.abbreviation,
+      state: selectedState.abbreviation,  // Met à jour l'état avec l'abréviation de l'état sélectionné
     }));
   };
 
-  // Fonction appelée lors de la tentative de sauvegarde du formulaire.
-  // - Valide les données du formulaire et les enregistre dans le localStorage si elles sont valides.
+  // Fonction pour gérer la sauvegarde des données de l'employé
   const handleSave = () => {
-    // Validation des données du formulaire. Si des erreurs existent, elles sont stockées dans l'état 'errors'.
-    const validationErrors = validateForm(values);
+    const validationErrors = validateForm(values);  // Validation des valeurs du formulaire
 
     if (Object.keys(validationErrors).length > 0) {
-        setErrors(validationErrors);
-        return; // Si des erreurs sont présentes, on arrête la soumission.
+      setErrors(validationErrors);  // Si des erreurs de validation sont trouvées, les mettre à jour dans l'état
+      return;  // Arrête le traitement si des erreurs existent
     }
 
-    // Formatage des dates avant l'enregistrement pour garantir un affichage uniforme.
+    // Formatage des données de l'employé avant de les enregistrer
     const formattedEmployeeData = {
-        ...values,
-        dateOfBirth: formatDateToDDMMYYYY(values.dateOfBirth),
-        startDate: formatDateToDDMMYYYY(values.startDate),
+      ...values,
+      dateOfBirth: formatDateToDDMMYYYY(values.dateOfBirth),  // Formate la date de naissance
+      startDate: formatDateToDDMMYYYY(values.startDate),  // Formate la date de début
     };
 
-    // Récupération des employés existants dans le localStorage et ajout du nouvel employé.
-    const employees = JSON.parse(localStorage.getItem('employees')) || [];
-    employees.push(formattedEmployeeData);
-    
-    // Sauvegarde de la nouvelle liste des employés dans le localStorage.
-    localStorage.setItem('employees', JSON.stringify(employees));
+    // Utilisation du contexte pour ajouter l'employé sans avoir besoin de localStorage
+    addEmployee(formattedEmployeeData);
 
-    console.log('Employee Data Saved:', formattedEmployeeData);
+    console.log('Employee Data Saved:', formattedEmployeeData);  // Log des données de l'employé sauvegardées
 
-    // Affichage du modal de confirmation.
-    setModalOpen(true);
-    // Réinitialisation des erreurs après soumission réussie.
-    setErrors({});
+    setModalOpen(true);  // Ouvre le modal après la sauvegarde
+    setErrors({});  // Réinitialise les erreurs
   };
 
-  // Rendu du formulaire de création d'employé.
   return (
-    <form className="form">
-      {/* Champ de saisie pour le prénom (firstName). Gestion des erreurs associées au champ. */}
+    <form className="form">  {/* Rendu du formulaire d'employé */}
+      {/* Champs du formulaire pour le prénom */}
       <label htmlFor="firstName">First Name</label>
       <input
         type="text"
         name="firstName"
         id="firstName"
         value={values.firstName}
-        onChange={handleChange}
-        className={errors.firstName ? 'error' : ''}
+        onChange={handleChange}  // Gestion du changement de valeur
+        className={errors.firstName ? 'error' : ''}  // Applique une classe d'erreur si nécessaire
       />
-      {errors.firstName && <span className="error">{errors.firstName}</span>}
+      {errors.firstName && <span className="error">{errors.firstName}</span>}  {/* Affiche l'erreur si elle existe */}
 
-      {/* Champ de saisie pour le nom (lastName). Gestion des erreurs associées au champ. */}
+      {/* Champs du formulaire pour le nom de famille */}
       <label htmlFor="lastName">Last Name</label>
       <input
         type="text"
@@ -138,34 +102,34 @@ const EmployeeForm = () => {
         id="lastName"
         value={values.lastName}
         onChange={handleChange}
-        className={errors.lastName ? 'error' : ''}
+        className={errors.lastName ? 'error' : ''}  // Applique une classe d'erreur si nécessaire
       />
-      {errors.lastName && <span className="error">{errors.lastName}</span>}
+      {errors.lastName && <span className="error">{errors.lastName}</span>}  {/* Affiche l'erreur si elle existe */}
 
-      {/* Sélecteur de date pour la date de naissance (dateOfBirth). Chargé dynamiquement avec React.Suspense. */}
+      {/* Sélecteur de date de naissance */}
       <label htmlFor="dateOfBirth">Date of Birth</label>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div>Loading...</div>}>  {/* Affiche un message de chargement pendant le chargement du composant */}
         <DatePicker
           id="dateOfBirth"
-          selectedDate={values.dateOfBirth}
-          onChange={(date) => handleDateChange('dateOfBirth', date)}
+          selectedDate={values.dateOfBirth}  // Valeur sélectionnée
+          onChange={(date) => handleDateChange('dateOfBirth', date)}  // Gestion du changement de date
         />
       </Suspense>
 
-      {/* Sélecteur de date pour la date de début d'emploi (startDate). Chargé dynamiquement avec React.Suspense. */}
+      {/* Sélecteur de date de début */}
       <label htmlFor="startDate">Start Date</label>
       <Suspense fallback={<div>Loading...</div>}>
         <DatePicker
           id="startDate"
-          selectedDate={values.startDate}
-          onChange={(date) => handleDateChange('startDate', date)}
+          selectedDate={values.startDate}  // Valeur sélectionnée
+          onChange={(date) => handleDateChange('startDate', date)}  // Gestion du changement de date
         />
       </Suspense>
 
-      {/* Groupe de champs pour l'adresse, incluant la rue, la ville et le code postal. */}
-      <fieldset className="address">
+      <fieldset className="address">  {/* Champ de regroupement pour l'adresse */}
         <legend>Address</legend>
 
+        {/* Champs pour la rue */}
         <label htmlFor="street">Street</label>
         <input
           type="text"
@@ -173,10 +137,11 @@ const EmployeeForm = () => {
           id="street"
           value={values.street}
           onChange={handleChange}
-          className={errors.street ? 'error' : ''}
+          className={errors.street ? 'error' : ''}  // Applique une classe d'erreur si nécessaire
         />
-        {errors.street && <span className="error">{errors.street}</span>}
+        {errors.street && <span className="error">{errors.street}</span>}  {/* Affiche l'erreur si elle existe */}
 
+        {/* Champs pour la ville */}
         <label htmlFor="city">City</label>
         <input
           type="text"
@@ -184,13 +149,14 @@ const EmployeeForm = () => {
           id="city"
           value={values.city}
           onChange={handleChange}
-          className={errors.city ? 'error' : ''}
+          className={errors.city ? 'error' : ''}  // Applique une classe d'erreur si nécessaire
         />
-        {errors.city && <span className="error">{errors.city}</span>}
+        {errors.city && <span className="error">{errors.city}</span>}  {/* Affiche l'erreur si elle existe */}
 
-        {/* Sélecteur d'état via AutoComplete, permettant de choisir l'état de l'adresse. */}
-        <AutoComplete options={states} onSelect={handleStateSelect} />
+        {/* Composant d'auto-complétion pour la sélection de l'état */}
+        <AutoComplete options={states} onSelect={handleStateSelect} />  {/* Liste des états avec gestion de sélection */}
 
+        {/* Champs pour le code postal */}
         <label htmlFor="zipCode">Zip Code</label>
         <input
           type="number"
@@ -198,14 +164,14 @@ const EmployeeForm = () => {
           id="zipCode"
           value={values.zipCode}
           onChange={handleChange}
-          className={errors.zipCode ? 'error' : ''}
+          className={errors.zipCode ? 'error' : ''}  // Applique une classe d'erreur si nécessaire
         />
-        {errors.zipCode && <span className="error">{errors.zipCode}</span>}
+        {errors.zipCode && <span className="error">{errors.zipCode}</span>}  {/* Affiche l'erreur si elle existe */}
       </fieldset>
 
-      {/* Sélection du département (department) avec une liste déroulante. */}
+      {/* Sélecteur de département */}
       <label htmlFor="department">Department</label>
-      <select id="department" name="department" onChange={handleChange}>
+      <select id="department" name="department" onChange={handleChange}>  {/* Gestion du changement de sélection */}
         <option value="Sales">Sales</option>
         <option value="Marketing">Marketing</option>
         <option value="Engineering">Engineering</option>
@@ -213,18 +179,197 @@ const EmployeeForm = () => {
         <option value="Legal">Legal</option>
       </select>
 
-      {/* Bouton pour sauvegarder les données du formulaire. Appel de la fonction handleSave lors du clic. */}
+      {/* Bouton de sauvegarde */}
       <button className="save" type="button" onClick={handleSave}>
         Save
       </button>
 
-      {/* Affichage du modal de confirmation après création de l'employé, chargé dynamiquement via React.Suspense. */}
+      {/* Modal pour confirmation de la création de l'employé */}
       <Modal isOpen={isModalOpen} onClose={() => setModalOpen(false)}>
-        Employee Created!
+        Employee Created!  {/* Message affiché dans le modal */}
       </Modal>
     </form>
   );
 };
 
-// Exportation du composant pour utilisation dans d'autres parties de l'application (par exemple, dans la page de création d'employé).
-export default EmployeeForm;
+export default EmployeeForm;  // Exportation du composant EmployeeForm pour utilisation dans d'autres parties de l'application
+
+
+
+// import React, { useState, lazy, Suspense } from "react";
+// import { states } from "../../data/states";
+// import { validateForm } from "../../utils/validation";
+// import useForm from "../../hooks/useForm";
+// import { useEmployee } from '../../context/EmployeeContext';  // Importer le contexte
+
+// import './employeeForm.scss';
+
+// const AutoComplete = lazy(() => import("../autoComplete/AutoComplete"));
+// const DatePicker = lazy(() => import("../datePicker/DatePicker"));
+// const Modal = lazy(() => import("../modal/Modal"));
+
+// const EmployeeForm = () => {
+//   const { addEmployee } = useEmployee();  // Accès à la fonction d'ajout d'employé depuis le contexte
+//   const initialEmployeeData = {
+//     firstName: '',
+//     lastName: '',
+//     dateOfBirth: null,
+//     startDate: null,
+//     street: '',
+//     city: '',
+//     state: states[0].abbreviation,
+//     zipCode: '',
+//     department: '',
+//   };
+
+//   const { values, errors, handleChange, setValues, setErrors } = useForm(initialEmployeeData);
+//   const [isModalOpen, setModalOpen] = useState(false);
+
+//   const formatDateToDDMMYYYY = (date) => {
+//     if (!date) return null;
+//     const day = String(date.getDate()).padStart(2, '0');
+//     const month = String(date.getMonth() + 1).padStart(2, '0');
+//     const year = date.getFullYear();
+//     return `${day}/${month}/${year}`;
+//   };
+
+//   const handleDateChange = (key, date) => {
+//     setValues((prevValues) => ({
+//       ...prevValues,
+//       [key]: date,
+//     }));
+//   };
+
+//   const handleStateSelect = (selectedState) => {
+//     setValues((prevValues) => ({
+//       ...prevValues,
+//       state: selectedState.abbreviation,
+//     }));
+//   };
+
+//   const handleSave = () => {
+//     const validationErrors = validateForm(values);
+
+//     if (Object.keys(validationErrors).length > 0) {
+//       setErrors(validationErrors);
+//       return;
+//     }
+
+//     const formattedEmployeeData = {
+//       ...values,
+//       dateOfBirth: formatDateToDDMMYYYY(values.dateOfBirth),
+//       startDate: formatDateToDDMMYYYY(values.startDate),
+//     };
+
+//     // Utiliser le contexte pour ajouter l'employé sans localStorage
+//     addEmployee(formattedEmployeeData);
+
+//     console.log('Employee Data Saved:', formattedEmployeeData);
+
+//     setModalOpen(true);
+//     setErrors({});
+//   };
+
+//   return (
+//     <form className="form">
+//       {/* Le formulaire reste identique */}
+//       <label htmlFor="firstName">First Name</label>
+//       <input
+//         type="text"
+//         name="firstName"
+//         id="firstName"
+//         value={values.firstName}
+//         onChange={handleChange}
+//         className={errors.firstName ? 'error' : ''}
+//       />
+//       {errors.firstName && <span className="error">{errors.firstName}</span>}
+
+//       <label htmlFor="lastName">Last Name</label>
+//       <input
+//         type="text"
+//         name="lastName"
+//         id="lastName"
+//         value={values.lastName}
+//         onChange={handleChange}
+//         className={errors.lastName ? 'error' : ''}
+//       />
+//       {errors.lastName && <span className="error">{errors.lastName}</span>}
+
+//       <label htmlFor="dateOfBirth">Date of Birth</label>
+//       <Suspense fallback={<div>Loading...</div>}>
+//         <DatePicker
+//           id="dateOfBirth"
+//           selectedDate={values.dateOfBirth}
+//           onChange={(date) => handleDateChange('dateOfBirth', date)}
+//         />
+//       </Suspense>
+
+//       <label htmlFor="startDate">Start Date</label>
+//       <Suspense fallback={<div>Loading...</div>}>
+//         <DatePicker
+//           id="startDate"
+//           selectedDate={values.startDate}
+//           onChange={(date) => handleDateChange('startDate', date)}
+//         />
+//       </Suspense>
+
+//       <fieldset className="address">
+//         <legend>Address</legend>
+
+//         <label htmlFor="street">Street</label>
+//         <input
+//           type="text"
+//           name="street"
+//           id="street"
+//           value={values.street}
+//           onChange={handleChange}
+//           className={errors.street ? 'error' : ''}
+//         />
+//         {errors.street && <span className="error">{errors.street}</span>}
+
+//         <label htmlFor="city">City</label>
+//         <input
+//           type="text"
+//           name="city"
+//           id="city"
+//           value={values.city}
+//           onChange={handleChange}
+//           className={errors.city ? 'error' : ''}
+//         />
+//         {errors.city && <span className="error">{errors.city}</span>}
+
+//         <AutoComplete options={states} onSelect={handleStateSelect} />
+
+//         <label htmlFor="zipCode">Zip Code</label>
+//         <input
+//           type="number"
+//           name="zipCode"
+//           id="zipCode"
+//           value={values.zipCode}
+//           onChange={handleChange}
+//           className={errors.zipCode ? 'error' : ''}
+//         />
+//         {errors.zipCode && <span className="error">{errors.zipCode}</span>}
+//       </fieldset>
+
+//       <label htmlFor="department">Department</label>
+//       <select id="department" name="department" onChange={handleChange}>
+//         <option value="Sales">Sales</option>
+//         <option value="Marketing">Marketing</option>
+//         <option value="Engineering">Engineering</option>
+//         <option value="Human Resources">Human Resources</option>
+//         <option value="Legal">Legal</option>
+//       </select>
+
+//       <button className="save" type="button" onClick={handleSave}>
+//         Save
+//       </button>
+
+//       <Modal isOpen={isModalOpen} onClose={() => setModalOpen(false)}>
+//         Employee Created!
+//       </Modal>
+//     </form>
+//   );
+// };
+
+// export default EmployeeForm;

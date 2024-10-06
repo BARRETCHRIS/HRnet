@@ -1,6 +1,7 @@
 // Expressions régulières pour valider divers champs de formulaire.
 // - nameRegex : Valide que le nom contient au moins 2 lettres (majuscule ou minuscule).
-export const nameRegex = /^[A-Za-z]{2,}$/; // Au moins 2 lettres
+// export const nameRegex = /^[A-Za-z]{2,}$/; // Au moins 2 lettres
+export const nameRegex = /^[A-Za-z\s'-]{2,}$/;
 
 // - zipCodeRegex : Valide que le code postal est composé exactement de 5 chiffres.
 export const zipCodeRegex = /^\d{5}$/; // Code postal à 5 chiffres
@@ -10,7 +11,7 @@ export const zipCodeRegex = /^\d{5}$/; // Code postal à 5 chiffres
 export const streetRegex = /^[A-Za-z0-9\s,'-]{3,}$/; // Lettres, chiffres et certains caractères spéciaux
 
 // - cityRegex : Valide que la ville contient au moins 2 lettres et peut inclure des espaces.
-export const cityRegex = /^[A-Za-z\s]{2,}$/; // Lettres et espaces seulement
+export const cityRegex = /^[A-Za-z\s'-]{2,}$/; // Lettres et espaces seulement
 
 // Fonction pour valider un champ à l'aide d'une expression régulière.
 // - value : Valeur du champ à valider.
